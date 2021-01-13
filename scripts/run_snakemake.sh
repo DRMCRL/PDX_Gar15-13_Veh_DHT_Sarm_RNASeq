@@ -1,32 +1,24 @@
 #!/bin/bash
 #SBATCH -p batch
 #SBATCH -N 1
-#SBATCH -n 4
+#SBATCH -n 12
 #SBATCH --time=1:00:00
-#SBATCH --mem=32GB
-#SBATCH -o /home/a1018048/slurm/20131906_MDA-MB-453_DHT-RNASeq/%x_%j.out
-#SBATCH -e /home/a1018048/slurm/20131906_MDA-MB-453_DHT-RNASeq/%x_%j.err
+#SBATCH --mem=96GB
+#SBATCH -o /home/a1018048/slurm/PDX_Gar15-13_Veh_DHT_Sarm_RNASeq/%x_%j.out
+#SBATCH -e /home/a1018048/slurm/PDX_Gar15-13_Veh_DHT_Sarm_RNASeq/%x_%j.err
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
 #SBATCH --mail-user=stephen.pederson@adelaide.edu.au
 
 ## Cores
-CORES=8
-if [ -d "/hpcfs" ]; then
-	module load arch/arch/haswell
-	module load arch/haswell
-	module load modulefiles/arch/haswell
-	HPC="/hpcfs"
-else
-    if [ -d "/fast" ]; then
-        HPC=/fast
-    else
-        exit 1
-    fi
-fi
+CORES=24
+module load arch/arch/haswell
+module load arch/haswell
+module load modulefiles/arch/haswell
+HPC="/hpcfs"
 
 ## Project Root
-PROJ=${HPC}/users/a1018048/20131906_MDA-MB-453_DHT-RNASeq
+PROJ=${HPC}/users/a1018048/PDX_Gar15-13_Veh_DHT_Sarm_RNASeq
 
 ## The environment containing snakemake
 micromamba activate snakemake
@@ -36,6 +28,8 @@ cd ${PROJ}
 snakemake \
   --cores ${CORES} \
   --use-conda \
+  --notemp \
+  --latency-wait 60 \
   --wrapper-prefix 'https://raw.githubusercontent.com/snakemake/snakemake-wrappers/'
 
 ## Add files to git
