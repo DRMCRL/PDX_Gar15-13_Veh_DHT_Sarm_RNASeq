@@ -2,7 +2,7 @@
 #SBATCH -p batch
 #SBATCH -N 1
 #SBATCH -n 12
-#SBATCH --time=1:00:00
+#SBATCH --time=24:00:00
 #SBATCH --mem=96GB
 #SBATCH -o /home/a1018048/slurm/PDX_Gar15-13_Veh_DHT_Sarm_RNASeq/%x_%j.out
 #SBATCH -e /home/a1018048/slurm/PDX_Gar15-13_Veh_DHT_Sarm_RNASeq/%x_%j.err
