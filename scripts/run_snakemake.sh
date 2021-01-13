@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH -p batch
 #SBATCH -N 1
-#SBATCH -n 12
+#SBATCH -n 7
 #SBATCH --time=24:00:00
-#SBATCH --mem=96GB
+#SBATCH --mem=56GB
 #SBATCH -o /home/a1018048/slurm/PDX_Gar15-13_Veh_DHT_Sarm_RNASeq/%x_%j.out
 #SBATCH -e /home/a1018048/slurm/PDX_Gar15-13_Veh_DHT_Sarm_RNASeq/%x_%j.err
 #SBATCH --mail-type=END
@@ -11,7 +11,7 @@
 #SBATCH --mail-user=stephen.pederson@adelaide.edu.au
 
 ## Cores
-CORES=24
+CORES=14
 module load arch/arch/haswell
 module load arch/haswell
 module load modulefiles/arch/haswell
