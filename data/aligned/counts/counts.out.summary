@@ -1,0 +1,15 @@
+Status	data/aligned/bam/Gar15-13DHT1.R1.combined/Aligned.sortedByCoord.out.bam	data/aligned/bam/Gar15-13DHT2.R1.combined/Aligned.sortedByCoord.out.bam	data/aligned/bam/Gar15-13DHT3.R1.combined/Aligned.sortedByCoord.out.bam	data/aligned/bam/Gar15-13DHT4.R1.combined/Aligned.sortedByCoord.out.bam	data/aligned/bam/Gar15-13Sarm1.R1.combined/Aligned.sortedByCoord.out.bam	data/aligned/bam/Gar15-13Sarm2.R1.combined/Aligned.sortedByCoord.out.bam	data/aligned/bam/Gar15-13Sarm3.R1.combined/Aligned.sortedByCoord.out.bam	data/aligned/bam/Gar15-13Sarm4.R1.combined/Aligned.sortedByCoord.out.bam	data/aligned/bam/Gar15-13Sarm5.R1.combined/Aligned.sortedByCoord.out.bam	data/aligned/bam/Gar15-13Veh1.R1.combined/Aligned.sortedByCoord.out.bam	data/aligned/bam/Gar15-13Veh2.R1.combined/Aligned.sortedByCoord.out.bam	data/aligned/bam/Gar15-13Veh3.R1.combined/Aligned.sortedByCoord.out.bam	data/aligned/bam/Gar15-13Veh4.R1.combined/Aligned.sortedByCoord.out.bam	data/aligned/bam/Gar15-13Veh5.R1.combined/Aligned.sortedByCoord.out.bam
+Assigned	11463612	12944762	14894302	13461612	17989831	12975579	14552763	12756724	12800108	18501539	13832449	14083449	11230978	16420930
+Unassigned_Unmapped	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Read_Type	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Singleton	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_MappingQuality	6956282	6680391	10534838	12015252	12460416	6805153	13680036	6819155	14231922	8349821	6578142	8183848	9444540	11783766
+Unassigned_Chimera	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_FragmentLength	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Duplicate	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_MultiMapping	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Secondary	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_NonSplit	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_NoFeatures	5808115	4952316	5626100	4561081	7660218	7420262	3788193	3906370	5294685	7529021	5884718	5238315	4359269	7115367
+Unassigned_Overlapping_Length	501446	438999	515150	501164	623690	498960	404713	381525	418584	621364	482155	450930	375204	593598
+Unassigned_Ambiguity	572663	640898	723422	664608	953347	654128	836768	675486	684691	1007746	739499	732115	593906	860137
