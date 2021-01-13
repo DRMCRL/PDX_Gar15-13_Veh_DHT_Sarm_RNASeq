@@ -11,5 +11,5 @@ logs/
 *.fq.gz
 *.bam
 *.bai
-snakemake_rnaseq_se.Rproj
+*.Rproj
 

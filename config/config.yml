@@ -3,8 +3,8 @@ samples: config/samples.tsv
 # The file extension. Usually one of .fq.gz/.fastq.gz/.fq/.fastq
 # Any additional 'tag' such as _R1_001 which trails the values provided
 # in the samples file should be specified as the tag
-ext: .fq.gz
-tag: .r_1
+ext: .fastq.gz
+tag: .R1.combined
 
 # The root argument tells you where the genome will be located
 # on the local system. All other arguments are required for
@@ -41,9 +41,9 @@ trimming:
   extra: "--gzip --trimqualities"
 
 # Settings for featureCounts. To set this to count strictly exonic reads,
-# change fracOverlap to be the value 1. The value minOverlap may also need 
+# change fracOverlap to be the value 1. The value minOverlap may also need
 # adjusting based on your own read lengths. This is also set to include
-# multi-mapping reads using fractional counts by default. Please remove 
+# multi-mapping reads using fractional counts by default. Please remove
 # "-M --fraction" to disable this
 featureCounts:
   minQual: 1
@@ -59,4 +59,4 @@ featureCounts:
 # value refers to any secondary variables or confounders
 analysis:
   group: treat
-  batch: flowcell_id
+  batch: passage

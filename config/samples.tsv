@@ -1,1 +1,15 @@
-sample
+sample	treat	passage	desc
+Gar15-13DHT1	DHT	1	DHT_1
+Gar15-13DHT2	DHT	2	DHT_2
+Gar15-13DHT3	DHT	3	DHT_3
+Gar15-13DHT4	DHT	4	DHT_4
+Gar15-13Sarm1	Sarm	1	Sarm_1
+Gar15-13Sarm2	Sarm	2	Sarm_2
+Gar15-13Sarm3	Sarm	3	Sarm_3
+Gar15-13Sarm4	Sarm	4	Sarm_4
+Gar15-13Sarm5	Sarm	5	Sarm_5
+Gar15-13Veh1	Veh	1	Veh_1
+Gar15-13Veh2	Veh	2	Veh_2
+Gar15-13Veh3	Veh	3	Veh_3
+Gar15-13Veh4	Veh	4	Veh_4
+Gar15-13Veh5	Veh	5	Veh_5
