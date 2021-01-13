@@ -1,0 +1,121 @@
+AdapterRemoval ver. 2.3.1
+Trimming of single-end reads
+
+
+[Adapter sequences]
+Adapter1[1]: AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
+Adapter2[1]: AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+
+
+[Adapter trimming]
+RNG seed: 1867383522
+Alignment shift value: 2
+Global mismatch threshold: 0.333333
+Quality format (input): Phred+33
+Quality score max (input): 41
+Quality format (output): Phred+33
+Quality score max (output): 41
+Mate-number separator (input): '/'
+Trimming 5p: 0
+Trimming 3p: 0
+Trimming Ns: No
+Trimming Phred scores <= 30: Yes
+Trimming using sliding windows: No
+Minimum genomic length: 35
+Maximum genomic length: 4294967295
+Collapse overlapping reads: No
+Minimum overlap (in case of collapse): 11
+Minimum adapter overlap: 0
+
+
+[Trimming statistics]
+Total number of reads: 20586810
+Number of unaligned reads: 16044189
+Number of well aligned reads: 4542621
+Number of discarded mate 1 reads: 38483
+Number of singleton mate 1 reads: 20548327
+Number of reads with adapters[1]: 4542621
+Number of retained reads: 20548327
+Number of retained nucleotides: 1534179000
+Average length of retained reads: 74.662
+
+
+[Length distribution]
+Length	Mate1	Discarded	All
+0	0	4688	4688
+1	0	5	5
+2	0	7	7
+3	0	21	21
+4	0	9	9
+5	0	5	5
+6	0	7	7
+7	0	6	6
+8	0	8	8
+9	0	9	9
+10	0	7	7
+11	0	16	16
+12	0	10	10
+13	0	8	8
+14	0	18	18
+15	0	24	24
+16	0	32	32
+17	0	61	61
+18	0	95	95
+19	0	118	118
+20	0	167	167
+21	0	325	325
+22	0	496	496
+23	0	664	664
+24	0	882	882
+25	0	1083	1083
+26	0	1097	1097
+27	0	1266	1266
+28	0	1297	1297
+29	0	1497	1497
+30	0	1562	1562
+31	0	1530	1530
+32	0	1527	1527
+33	0	1654	1654
+34	0	1696	1696
+35	1799	1	1800
+36	1773	2	1775
+37	1805	2	1807
+38	1859	6	1865
+39	2036	1	2037
+40	2121	8	2129
+41	2287	20	2307
+42	2190	26	2216
+43	2407	45	2452
+44	2316	61	2377
+45	2497	119	2616
+46	2696	197	2893
+47	2485	136	2621
+48	2769	166	2935
+49	2986	209	3195
+50	2857	249	3106
+51	3284	275	3559
+52	4084	403	4487
+53	4137	447	4584
+54	4354	347	4701
+55	4864	291	5155
+56	5156	369	5525
+57	6965	368	7333
+58	8504	200	8704
+59	8731	335	9066
+60	14418	378	14796
+61	16116	359	16475
+62	22575	132	22707
+63	32333	261	32594
+64	73232	751	73983
+65	50015	428	50443
+66	67703	300	68003
+67	25303	613	25916
+68	43000	501	43501
+69	77365	749	78114
+70	135598	526	136124
+71	214579	802	215381
+72	565044	568	565612
+73	1462489	1217	1463706
+74	3100943	1254	3102197
+75	6111379	1644	6113023
+76	8449273	1820	8451093
