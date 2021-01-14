@@ -310,7 +310,7 @@ counts <- here::here("data/aligned/counts/counts.out") %>%
 - Of the `r comma(nrow(counts))` genes defined in this annotation build, `r comma(sum(rowSums(counts) == 0))` genes had no reads assigned in any samples.
 - The numbers of genes with at least one read assigned ranged between `r pander(comma(range(colSums(apply(counts, MARGIN = 2, as.logical)))))` across all samples.
 
-```{r plotDetectedGenes, fig.height=6, fig.width=8, fig.cap = "*Total numbers of genes detected across all samples and groups.*"}
+```{r plotDetectedGenes, fig.cap = "*Total numbers of genes detected across all samples and groups.*"}
 counts %>%
   as_tibble() %>%
   mutate(
@@ -340,7 +340,7 @@ counts %>%
   )
 ```
 
-```{r plotDetectedVsSamples, fig.height=6, fig.width=8, fig.cap = "*Total numbers of genes detected shown against the number of samples with at least one read assigned to each gene.*"}
+```{r plotDetectedVsSamples, fig.cap = "*Total numbers of genes detected shown against the number of samples with at least one read assigned to each gene.*"}
 plotly::ggplotly(
   counts %>%
     is_greater_than(0) %>%
@@ -387,7 +387,7 @@ plotly::ggplotly(
 
 After assignment to genes, library sizes ranged between `r pander(comma(range(colSums(counts))))` reads, with a median library size of `r pander(comma(median(colSums(counts))))` reads.
 
-```{r plotLibSize, fig.height = 6, fig.width=8, fig.cap = "*Library sizes across all samples and groups*"}
+```{r plotLibSize, fig.cap = "*Library sizes across all samples and groups*"}
 plotly::ggplotly(
   counts %>%
     colSums() %>%
@@ -428,7 +428,7 @@ pca <- counts %>%
 
 A PCA was performed using logCPM values from the subset of `r comma(sum(rowSums(counts == 0) < ncol(counts)/2))` genes with at least one read in more than half of the samples.
 
-```{r plotPCA, fig.height=6, fig.width=8, fig.cap="*PCA plot of all samples.*"}
+```{r plotPCA, fig.cap="*PCA plot of all samples.*"}
 showLabel <- nrow(samples) <= 20
 pca %>%
   autoplot(
@@ -444,7 +444,7 @@ pca %>%
 
 ### GC and Length Biases
 
-```{r plotPCA_GC_Length, fig.height=6, fig.cap = "*Contribution of each GC/Length Bin to PC1 and PC2. Fill colours indicate the t-statistic, with tranparency denoting significance as -log10(p), using Bonferroni-adjusted p-values.*"}
+```{r plotPCA_GC_Length, fig.cap = "*Contribution of each GC/Length Bin to PC1 and PC2. Fill colours indicate the t-statistic, with tranparency denoting significance as -log10(p), using Bonferroni-adjusted p-values.*"}
 mcols(genesGR) %>%
   as.data.frame() %>%
   dplyr::filter(gene_id %in% rownames(pca$rotation)) %>%

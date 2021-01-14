@@ -118,7 +118,7 @@ plot_grid(
   b + theme(legend.position = "none"),
   labels = c("A", "B"),
   nrow = 1,
-  rel_widths = c(1.6, 1)
+  rel_widths = c(1.4, 1)
 ) +
   draw_plot(
     plot = get_legend(a), 
