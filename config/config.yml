@@ -59,4 +59,4 @@ featureCounts:
 # value refers to any secondary variables or confounders
 analysis:
   group: treat
-  batch: passage
+  batch:
