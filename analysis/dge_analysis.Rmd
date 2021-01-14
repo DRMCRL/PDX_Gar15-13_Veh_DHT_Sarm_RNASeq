@@ -606,10 +606,10 @@ topTable %>%
     data = . %>%
       dplyr::filter(
         DE,
-        logFC > 4.6 |
+        logFC > 4.9 |
         (PValue < 1e-9 & logFC > 2) |
         (PValue < 1e-8 & logFC < -2) |
-          (logFC < -3.5) 
+          (logFC < -3.75) 
         ),
     show.legend = FALSE,
     max.overlaps = 12
