@@ -59,16 +59,7 @@ config$analysis <- config$analysis %>%
 ```
 
 ```{r add_columns}
-if (length(config$analysis)) {
-  samples <- samples %>%
-    unite(
-      col = group, 
-      any_of(as.character(unlist(config$analysis))), 
-      sep = "_", remove = FALSE
-    )
-} else {
-  samples$group <- samples$Filename
-}
+samples$group <- samples$treat
 ```
 
 
@@ -102,7 +93,8 @@ plotSummary(rawFqc)
 
 A total of `r length(rawFqc)` libraries were contained in this dataset, with read totals ranging between `r pander(comma(range(readTotals(rawFqc)$Total_Sequences)))` reads.
 
-Across all libraries, reads were `r unique(getModule(rawFqc, "Sequence_Length")$Length)` bases.
+Across all libraries, reads were between `r range(getModule(rawFqc, "Sequence_Length")$Length)` bases.
+This indicates that some adapter removal or quality filtering had been performed by the sequencing facility.
 
 ```{r plotReadTotals, fig.height=fh, fig.cap = "*Library Sizes for all supplied fastq files. Any samples run as multiple libraries are  shown as the supplied multiple libraries and have not been merged.*"}
 plotReadTotals(rawFqc, pattern = suffix, usePlotly = TRUE)
@@ -248,7 +240,11 @@ os %>%
     `Largest Percent` = glue("{round(max(Percentage), 2)}%")
   ) %>%
   pander(
-    caption = "*Summary of over-represented sequences within the raw data.*"
+    caption = "
+    *Summary of over-represented sequences within the raw data.
+    A manual BLAST search of the unidentified sequence indicated this was a human lncRNA,
+    but this was also identified as an 18S rRNA in multiple species.
+    *"
   )
 ```
 

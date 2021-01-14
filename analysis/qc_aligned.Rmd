@@ -14,8 +14,8 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE,
   fig.align = "center",
-  fig.height = 7,
-  fig.width = 10
+  fig.height = 6,
+  fig.width = 8
 )
 ```
 
@@ -111,7 +111,7 @@ alnStats <- alnFiles %>%
 - Uniquely aligned reads ranged between `r pander(percent(range(alnStats$Uniquely_Mapped_Reads_Percent/100)))`
 - The percentages of mapped reads which aligned to 'too many' locations and were discarded was between `r pander(percent(range(alnStats$Percent_Of_Reads_Mapped_To_Too_Many_Loci)/100))`
 
-```{r plotAlnStats, fig.height=8, fig.cap = "*Alignment rates across all libraries*"}
+```{r plotAlnStats, fig.cap = "*Alignment rates across all libraries*"}
 ggplotly(
   alnStats %>%
     dplyr::select(
@@ -139,7 +139,7 @@ ggplotly(
     ) %>%
     ggplot(aes(Filename, Percent, fill = Category)) +
     geom_col(colour = "black", size = 0.1) +
-    facet_wrap(~group, scales = "free_x") +
+    facet_grid(~group, scales = "free_x", space = "free_x") +
     scale_y_continuous(expand = expansion(c(0, 0.05))) +
     scale_fill_viridis_d(option = "E", direction = -1) +
     theme(
@@ -262,7 +262,7 @@ Using these settings:
     - Between  `r pander(percent(range(with(countSummary, Unassigned_Overlapping_Length / Total))))` were unassigned as they failed the proportion overlapping criteria
     - Between  `r pander(percent(range(with(countSummary, Unassigned_Ambiguity / Total))))` were unassigned as they were considered ambiguous
     
-```{r plotAssignmentRate, fig.height=8, fig.cap = "*Rate of mapped reads being assigned to genes*"}
+```{r plotAssignmentRate, fig.cap = "*Rate of mapped reads being assigned to genes*"}
 ggplotly(
   countSummary %>%
     pivot_longer(
@@ -281,7 +281,7 @@ ggplotly(
       Status = fct_inorder(Status)) %>%
     ggplot(aes(sample, Percent, fill = Status)) +
     geom_col() +
-    facet_wrap(~group, scales = "free") +
+    facet_grid(~group, scales = "free_x", space = "free_x") +
     scale_fill_viridis_d(option = "E", direction = -1) +
     scale_y_continuous(
       labels = ngsReports:::.addPercent,
@@ -431,7 +431,13 @@ A PCA was performed using logCPM values from the subset of `r comma(sum(rowSums(
 ```{r plotPCA, fig.height=6, fig.width=8, fig.cap="*PCA plot of all samples.*"}
 showLabel <- nrow(samples) <= 20
 pca %>%
-  autoplot(data = samples, colour = "group", label = showLabel, label.repel = showLabel) +
+  autoplot(
+    data = samples, 
+    colour = "group", 
+    label = showLabel, 
+    label.repel = showLabel, 
+    label.show.legend = FALSE
+  ) +
   labs(colour = "Group") +
   scale_colour_manual(values = group_cols)
 ```

@@ -63,18 +63,11 @@ config$analysis <- config$analysis %>%
   .[vapply(., length, integer(1)) > 0]
 ```
 
+
 ```{r add_columns}
-if (length(config$analysis)) {
-  samples <- samples %>%
-    unite(
-      col = group, 
-      any_of(as.character(unlist(config$analysis))), 
-      sep = "_", remove = FALSE
-    ) 
-} else {
-  samples$group <- samples$Filename
-}
+samples$group <- samples$treat
 ```
+
 
 ```{r group_cols}
 group_cols <- hcl.colors(
@@ -83,7 +76,6 @@ group_cols <- hcl.colors(
   ) %>%
   setNames(unique(samples$group))
 ```
-
 
 ```{r setFigureSizes}
 fh <- round(6 + nrow(samples) / 15, 0)
@@ -250,10 +242,11 @@ plotly::ggplotly(
     ) %>%
     left_join(samples) %>%
     ggplot(
-      aes(Base, resid, group = Filename, colour = group)
+      aes(as.integer(Base), resid, group = Filename, colour = group)
     ) + 
     geom_line() +
     facet_wrap(~Nuc) + 
+    scale_x_continuous(breaks = seq(0, 100, by = 5)) +
     scale_colour_manual(values = group_cols) +
     labs(
       x = "Read Position", y = "Residual", colour = "Group"
