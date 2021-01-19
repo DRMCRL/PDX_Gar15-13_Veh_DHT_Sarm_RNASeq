@@ -521,10 +521,7 @@ dge$genes %>%
 
 # Differential Expression Analysis
 
-## Main Results
-
-A design matrix was formed giving each replicate it's own baseline and the common DHT response was then specified as the final column.
-Following this, dispersions were estimated for the main `DGEList` object and the model fitted using the Quasi-likelihood GLM.
+## Setup
 
 ```{r fit}
 X <- model.matrix(~ treat, data = dge$samples) %>%
@@ -533,26 +530,44 @@ dge <- estimateDisp(dge, design = X, robust = TRUE)
 fit <- glmQLFit(dge)
 ```
 
+As these replicates are true replicates, not passages, a design matrix was simply formed setting the Vehicle as baseline, then fitting the effects of DHT and SARM as separate effects.
+Following this, dispersions were estimated for the main `DGEList` object and the model fitted using the Quasi-likelihood GLM.
+
+
 ```{r topTable}
 alpha <- 0.05
 lambda <- log2(1.2)
-topTable <- glmTreat(fit, coef = "DHT", lfc = lambda) %>%
-  topTags(n = Inf) %>%
-  .[["table"]] %>%
-  as_tibble() %>%
-  mutate(
-    rankingStat = -sign(logFC)*log10(PValue),
-    signedRank = rank(rankingStat),
-    DE = FDR < alpha
-  ) %>%
-  dplyr::select(
-    gene_id, gene_name, logCPM, logFC, PValue, FDR, 
-    gene_biotype, entrezid, ave_tx_len, gc_content, 
-    rankingStat, signedRank, DE
+results <- colnames(X) %>%
+  str_subset("Intercept", negate = TRUE) %>%
+  sapply(
+    function(x){
+      glmTreat(fit, coef = x, lfc = lambda) %>%
+        topTags(n = Inf) %>%
+        .[["table"]] %>%
+        as_tibble() %>%
+        mutate(
+          rankingStat = -sign(logFC)*log10(PValue),
+          signedRank = rank(rankingStat),
+          DE = FDR < alpha,
+          coef = x
+        ) %>%
+        dplyr::select(
+          gene_id, gene_name, logCPM, logFC, PValue, FDR, 
+          gene_biotype, entrezid, ave_tx_len, gc_content, 
+          rankingStat, signedRank, DE, coef
+        )
+    },
+    simplify = FALSE
   )
-de <- dplyr::filter(topTable, DE)$gene_id
-up <- dplyr::filter(topTable, DE, logFC > 0)$gene_id
-down <- dplyr::filter(topTable, DE, logFC < 0)$gene_id
+de <- results %>%
+  lapply(dplyr::filter, DE) %>%
+  lapply(pull, gene_id)
+up <- results %>%
+  lapply(dplyr::filter, DE, logFC > 0) %>%
+  lapply(pull, gene_id)
+down <- results %>%
+  lapply(dplyr::filter, DE, logFC < 0) %>%
+  lapply(pull, gene_id)
 ```
 
 In order to detect genes which respond to DHT the Null Hypothesis ($H_0$) was specified to be a range around zero, instead of the conventional point-value.
@@ -567,11 +582,12 @@ This characterises $H_0$ as being a range instead of being the singularity 0, wi
 
 The default value of $\lambda = \log_2 `r 2^lambda` = `r round(lambda, 3)`$ was chosen.
 This removes any requirement for *post hoc* filtering based on logFC.
-Using this approach, `r length(de)` genes were considered as DE to an FDR of `r alpha`.
-Of these, `r length(up)` were up-regulated with the remaining `r length(down)` being down-regulated.
+The identical approach was used for both comparisons of DHT Vs Vehicle and SARM Vs Vehicle.
 
-```{r plotMA, fig.height=6, fig.cap = "*MA plot with blue curve through the data showing the GAM fit. The curve indicated a potential bias remains in the data. DE genes are highlighted in red.*"}
-topTable %>%
+```{r plotMA, fig.height=12, fig.cap = "*MA plot with blue curves through the data showing the GAM fit. The curve indicates that some potential bias remains in the data. The comparison between Sarm and Vehicle clearly yielded fewer DE genes with a more subtle response to treatment. DE genes are highlighted in red, with genes showing the most extreme fold-change labelled for interest.*"}
+results %>%
+  bind_rows() %>%
+  mutate(coef = paste(coef, "Vs. Vehicle")) %>%
   ggplot(aes(logCPM, logFC)) +
   geom_point(
     aes(colour = DE),
@@ -580,11 +596,25 @@ topTable %>%
   geom_text_repel(
     aes(label = gene_name, colour = DE),
     data = . %>%
-      dplyr::filter(logFC > 4.8 | logFC < -3.2),
+      dplyr::filter(
+        str_detect(coef, "DHT"),
+        logFC > 5 | logFC < -3.5
+      ),
+    show.legend = FALSE,
+    max.overlap = 12
+  ) +
+  geom_text_repel(
+    aes(label = gene_name, colour = DE),
+    data = . %>%
+      dplyr::filter(
+        str_detect(coef, "Sarm"),
+        logFC > 3.5 | logFC < -2.8
+      ),
     show.legend = FALSE,
     max.overlap = 12
   ) +
   geom_smooth(se = FALSE) +
+  facet_wrap(~coef, ncol = 1) +
   scale_y_continuous(breaks = seq(-4, 10, by = 2)) +
   scale_colour_manual(
     values = c("grey50", "red")
@@ -594,8 +624,15 @@ topTable %>%
   )
 ```
 
-```{r plotVolcano, fig.height=8, fig.cap = glue("*Volcano plot showing significance against log fold-change. The common-use cutoff values for considering a gene as DE (|logFC| > 1) are shown in blue as a guide only as these were not used for this analysis.*")}
-topTable %>%
+
+## DHT Vs Vehicle
+
+Using the above approach, `r length(de$DHT)` genes were considered as DE to an FDR of `r alpha`.
+Of these, `r length(up$DHT)` were up-regulated with the remaining `r length(down$DHT)` being down-regulated.
+
+
+```{r plotVolcanoDHT, fig.height=8, fig.cap = glue("*Volcano plot showing significance against log fold-change in the comparison of DHT against Vehicle. The common-use cutoff values for considering a gene as DE (|logFC| > 1) are shown in blue as a guide only as these were not used for this analysis.*")}
+results$DHT %>%
   ggplot(aes(logFC, -log10(PValue))) +
   geom_point(
     aes(colour = DE),
@@ -608,8 +645,8 @@ topTable %>%
         DE,
         logFC > 4.9 |
         (PValue < 1e-9 & logFC > 2) |
-        (PValue < 1e-8 & logFC < -2) |
-          (logFC < -3.75) 
+        (PValue < 3e-8 & logFC < -2) |
+          (logFC < -3.5) 
         ),
     show.legend = FALSE,
     max.overlaps = 12
@@ -627,8 +664,8 @@ topTable %>%
   )
 ```
 
-```{r printTopTable}
-topTable %>%
+```{r topTableDHT}
+results$DHT %>%
   dplyr::filter(DE) %>%
   dplyr::select(-DE, -gc_content, -ave_tx_len, -contains("rank")) %>%
   mutate(
@@ -636,7 +673,7 @@ topTable %>%
   ) %>%
   datatable(
     rownames = FALSE, 
-    caption = glue("All genes were considered as DE using the criteria of an FDR-adjusted p-value < {alpha}.")
+    caption = glue("DE genes from the comparison of DHT against Vehicle. All genes were considered as DE using the criteria of an FDR-adjusted p-value < {alpha}. Up-regulation means higher expression under DHT treatment.")
   ) %>%
   formatSignif(
     columns = c("PValue", "FDR"),
@@ -648,8 +685,8 @@ topTable %>%
 
 logCPM values for the most up and down-regulated genes were also inspected using simple boxplots.
 
-```{r plotTopUp, fig.height=8, echo=FALSE, fig.cap="*Top ranked up-regulated genes*"}
-topTable %>%
+```{r plotTopUpDHT, fig.height=8, echo=FALSE, fig.cap="*Top ranked up-regulated genes from the comparison of DHT against Vehicle*"}
+results$DHT %>%
   dplyr::filter(DE & logFC > 0) %>%
   dplyr::slice(1:12) %>%
   dplyr::select(gene_id, gene_name) %>%
@@ -673,8 +710,8 @@ topTable %>%
   scale_fill_manual(values = treat_cols)
 ```
 
-```{r plotTopDown, fig.height=8, echo=FALSE, fig.cap = "*Top ranked down-regulated genes*"}
-topTable %>%
+```{r plotTopDownDHT, fig.height=8, echo=FALSE, fig.cap = "*Top ranked down-regulated genes from the comparison of DHT against Vehicle*"}
+results$DHT %>%
   dplyr::filter(DE & logFC < 0) %>%
   dplyr::slice(1:12) %>%
   dplyr::select(gene_id, gene_name) %>%
@@ -699,25 +736,25 @@ topTable %>%
   scale_fill_manual(values = treat_cols)
 ```
 
-## Checks For Bias
+### Checks For Bias
 
 Using the sign of logFC to indicate direction, and -$\log_{10} p$ as the ranking statistic, bias was also checked within the set of results, using GC content and gene length as potential sources of bias amongst the set of DE genes.
 
-```{r plotBias, fig.height = 8, fig.cap = "*Genes ranked for signed differential expression shown against A) GC Content, and B) Gene Length. Ranks were assigned based on the ranking statistic R = -sign(logFC)*log~10~p, such that genes at the left are most down-regulated, whilst those at the right are the most up-regulated. Horizontal black lines indicate the overall average value, whilst blue curves indicate the localised GAM fit. A small positive bias was noted at both extremes for both GC content and Gene Length.*"}
-a <- topTable %>%
+```{r plotBiasDHT, fig.height = 8, fig.cap = "*Genes ranked for signed differential expression in the comparison of DHT against Vehicle, shown against A) GC Content, and B) Gene Length. Ranks were assigned based on the ranking statistic R = -sign(logFC)*log~10~p, such that genes at the left are most down-regulated, whilst those at the right are the most up-regulated. Horizontal black lines indicate the overall average value, whilst blue curves indicate the localised GAM fit. The minimal bias observed here gives greater confidence to enrichment results which may be obtained using any ranked-list type approaches*"}
+a <- results$DHT %>%
   ggplot(aes(signedRank, gc_content)) +
   geom_point(aes(colour = DE), alpha = 0.4) +
   geom_smooth(se = FALSE) +
-  geom_hline(yintercept = mean(topTable$gc_content)) +
+  geom_hline(yintercept = mean(results$DHT$gc_content)) +
   labs(
     x = "Rank", y = "% GC Content"
   ) +
   scale_colour_manual(values = c("grey50", "red")) + 
   theme(legend.position = "none")
-b <- topTable %>%
+b <- results$DHT %>%
     ggplot(aes(gc_content, stat(density))) +
     geom_density(colour = "grey50") +
-    geom_vline(xintercept = mean(topTable$gc_content)) +
+    geom_vline(xintercept = mean(results$DHT$gc_content)) +
     coord_flip() + 
     theme(
       axis.text = element_blank(),
@@ -726,21 +763,194 @@ b <- topTable %>%
       panel.grid.major.x = element_blank(),
       panel.grid.minor.x = element_blank()
     )
-c <- topTable %>%
+c <- results$DHT %>%
   ggplot(aes(signedRank, ave_tx_len)) +
   geom_point(aes(colour = DE), alpha = 0.4) +
   geom_smooth(se = FALSE) +
-  geom_hline(yintercept = 10^mean(log10(topTable$ave_tx_len))) +
+  geom_hline(yintercept = 10^mean(log10(results$DHT$ave_tx_len))) +
   labs(
     x = "Rank", y = "Gene Length (nt)"
   ) +
   scale_y_log10(label = comma) +
   scale_colour_manual(values = c("grey50", "red")) + 
   theme(legend.position = "none")
-d <- topTable %>%
+d <- results$DHT %>%
   ggplot(aes(ave_tx_len, stat(density))) +
   geom_density(colour = "grey50") +
-  geom_vline(xintercept = 10^mean(log10(topTable$ave_tx_len))) +
+  geom_vline(xintercept = 10^mean(log10(results$DHT$ave_tx_len))) +
+  coord_flip() + 
+  scale_x_log10() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank()
+  )
+plot_grid(
+  plot_grid(ngsReports:::.emptyPlot(""), a, b, rel_widths = c(0.35, 9, 1), align = "h", nrow = 1),
+  plot_grid(c, d, rel_widths = c(9, 1), align = "h"),
+  nrow = 2,
+  rel_heights = c(1, 1),
+  labels = c("A", "B"),
+  align = "v",
+  axis = "l"
+)
+```
+
+## Sarm Vs Vehicle
+
+Using the above approach, `r length(de$Sarm)` genes were considered as DE to an FDR of `r alpha`.
+Of these, `r length(up$Sarm)` were up-regulated with the remaining `r length(down$Sarm)` being down-regulated.
+
+
+```{r plotVolcanoSarm, fig.height=8, fig.cap = glue("*Volcano plot showing significance against log fold-change in the comparison of SARM against Vehicle. The common-use cutoff values for considering a gene as DE (|logFC| > 1) are shown in blue as a guide only as these were not used for this analysis.*")}
+results$Sarm %>%
+  ggplot(aes(logFC, -log10(PValue))) +
+  geom_point(
+    aes(colour = DE),
+    alpha = 0.5
+  ) +
+  geom_text_repel(
+    aes(label = gene_name, colour = DE),
+    data = . %>%
+      dplyr::filter(
+        DE,
+        logFC > 3 |
+        (PValue < 1e-7 & logFC > 1) |
+        (PValue < 5e-6 & logFC < 0) |
+          (logFC < -2.5) 
+        ),
+    show.legend = FALSE,
+    max.overlaps = 12
+  ) +
+  geom_vline(xintercept = c(-1,1), colour = "blue", linetype = 2) +
+  labs(
+    y = expression(paste(-log[10], "p"))
+  ) +
+  scale_x_continuous(breaks = seq(-4, 10, by = 2)) +
+  scale_colour_manual(
+    values = c("grey50", "red")
+  ) +
+  theme(
+    legend.position = "none"
+  )
+```
+
+```{r topTableSarm}
+results$Sarm %>%
+  dplyr::filter(DE) %>%
+  dplyr::select(-DE, -gc_content, -ave_tx_len, -contains("rank")) %>%
+  mutate(
+    across(c("logFC", "logCPM"), round, digits = 2)
+  ) %>%
+  datatable(
+    rownames = FALSE, 
+    caption = glue("DE genes from the comparison of SARM against Vehicle. All genes were considered as DE using the criteria of an FDR-adjusted p-value < {alpha}. Up-regulation means higher expression under Sarm treatment.")
+  ) %>%
+  formatSignif(
+    columns = c("PValue", "FDR"),
+    digits = 3
+  )
+```
+
+### Top DE Genes
+
+logCPM values for the most up and down-regulated genes were also inspected using simple boxplots.
+
+```{r plotTopUpSarm, fig.height=8, echo=FALSE, fig.cap="*Top ranked up-regulated genes from the comparison of SARM against Vehicle*"}
+results$Sarm %>%
+  dplyr::filter(DE & logFC > 0) %>%
+  dplyr::slice(1:12) %>%
+  dplyr::select(gene_id, gene_name) %>%
+  mutate(gene_name = fct_inorder(gene_name)) %>%
+  cbind(
+    logCPM[.$gene_id,]
+  ) %>%
+  pivot_longer(
+    any_of(colnames(dge)),
+    names_to = "Filename",
+    values_to = "logCPM"
+  ) %>%
+  left_join(dge$samples) %>%
+  ggplot(
+    aes(treat, logCPM, fill = treat)
+  ) +
+  geom_boxplot(size = 1/2) +
+  facet_wrap(~gene_name) +
+  labs(x = "Treatment", fill = "Treatment") +
+  scale_y_continuous(breaks = seq(-4, 8, by = 4)) +
+  scale_fill_manual(values = treat_cols)
+```
+
+```{r plotTopDownSarm, fig.height=8, echo=FALSE, fig.cap = "*Top ranked down-regulated genes from the comparison of SARM against Vehicle*"}
+results$Sarm %>%
+  dplyr::filter(DE & logFC < 0) %>%
+  dplyr::slice(1:12) %>%
+  dplyr::select(gene_id, gene_name) %>%
+  mutate(gene_name = fct_inorder(gene_name)) %>%
+  cbind(
+    logCPM[.$gene_id,]
+  ) %>%
+  pivot_longer(
+    any_of(colnames(dge)),
+    names_to = "Filename",
+    values_to = "logCPM"
+  ) %>%
+  left_join(dge$samples) %>%
+  ggplot(
+    aes(treat, logCPM, fill = treat)
+  ) +
+  geom_boxplot(size = 1/2) +
+  facet_wrap(~gene_name) +
+  labs(x = "Treatment", fill = "Treatment") +  
+  scale_y_continuous(breaks = seq(-4, 8, by = 4)) +
+  # coord_cartesian(ylim = c(2, 10)) +
+  scale_fill_manual(values = treat_cols)
+```
+
+### Checks For Bias
+
+Using the sign of logFC to indicate direction, and -$\log_{10} p$ as the ranking statistic, bias was also checked within the set of results, using GC content and gene length as potential sources of bias amongst the set of DE genes.
+
+```{r plotBiasSarm, fig.height = 8, fig.cap = "*Genes ranked for signed differential expression in the comparison of SARM against Vehicle, shown against A) GC Content, and B) Gene Length. Ranks were assigned based on the ranking statistic R = -sign(logFC)*log~10~p, such that genes at the left are most down-regulated, whilst those at the right are the most up-regulated. Horizontal black lines indicate the overall average value, whilst blue curves indicate the localised GAM fit. The minimal bias observed here gives greater confidence to enrichment results which may be obtained using any ranked-list type approaches*"}
+a <- results$Sarm %>%
+  ggplot(aes(signedRank, gc_content)) +
+  geom_point(aes(colour = DE), alpha = 0.4) +
+  geom_smooth(se = FALSE) +
+  geom_hline(yintercept = mean(results$Sarm$gc_content)) +
+  labs(
+    x = "Rank", y = "% GC Content"
+  ) +
+  scale_colour_manual(values = c("grey50", "red")) + 
+  theme(legend.position = "none")
+b <- results$Sarm %>%
+    ggplot(aes(gc_content, stat(density))) +
+    geom_density(colour = "grey50") +
+    geom_vline(xintercept = mean(results$Sarm$gc_content)) +
+    coord_flip() + 
+    theme(
+      axis.text = element_blank(),
+      axis.title = element_blank(),
+      axis.ticks = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank()
+    )
+c <- results$Sarm %>%
+  ggplot(aes(signedRank, ave_tx_len)) +
+  geom_point(aes(colour = DE), alpha = 0.4) +
+  geom_smooth(se = FALSE) +
+  geom_hline(yintercept = 10^mean(log10(results$Sarm$ave_tx_len))) +
+  labs(
+    x = "Rank", y = "Gene Length (nt)"
+  ) +
+  scale_y_log10(label = comma) +
+  scale_colour_manual(values = c("grey50", "red")) + 
+  theme(legend.position = "none")
+d <- results$Sarm %>%
+  ggplot(aes(ave_tx_len, stat(density))) +
+  geom_density(colour = "grey50") +
+  geom_vline(xintercept = 10^mean(log10(results$Sarm$ave_tx_len))) +
   coord_flip() + 
   scale_x_log10() +
   theme(
@@ -767,17 +977,27 @@ plot_grid(
 nm <- basename(getwd())
 ```
 
-These above results were exported as the file `r glue("{nm}.tsv")`.
+The two sets of results were exported as separate files
 
-```{r exportDE}
-topTable %>%
-  mutate(
-    entrezid = vapply(entrezid, str_flatten, character(1), collapse = ";")
-  ) %>%
-  write_tsv(
-    path = here::here("output", glue("{nm}.tsv"))
+```{r exportResults, results='hide'}
+names(results) %>%
+  lapply(
+    function(x){
+      write_tsv(
+        x = results[[x]] %>% 
+          mutate(
+            entrezid = vapply(entrezid, paste, character(1), collapse = ";")
+          ), 
+        file = here::here(
+          "output",
+          str_replace(nm, "(.+Veh).+", glue("\\1_Vs_{x}.tsv")) 
+        )
+      )
+      invisible(TRUE)
+    }
   )
 ```
+
 
 In addition, the final `DGEList` was exported for easier integration with subsequent analyses, as were the CPM values for all detected genes
 
@@ -789,15 +1009,15 @@ write_rds(
 ```
 
 ```{r exportCPM}
-cpm(dge) %>%
+logCPM %>%
   as.data.frame() %>%
   rownames_to_column("gene_id") %>%
   mutate(gene_name = dge$genes$gene_name) %>%
-  dplyr::select(starts_with("gene"), everything()) %>%
+  dplyr::select(starts_with("gene"), everything()) %>% 
   write_tsv(
     here::here(
       "output",
-      str_replace_all(nm, "RNASeq", "CPM.tsv")
+      str_replace_all(nm, "RNASeq", "logCPM.tsv")
     )
   )
 ```
