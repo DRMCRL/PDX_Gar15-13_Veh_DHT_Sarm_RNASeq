@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/329154962.svg)](https://zenodo.org/badge/latestdoi/329154962)
+
 # RNA-Seq Workflow
 
 This is an RNA-Seq workflow written in `snakemake`, and tested on the University of Adelaide HPC (phoenix).
